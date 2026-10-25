@@ -64,6 +64,23 @@ export function serializeError(err: unknown): SerializedError {
 }
 
 /**
+ * Logger serializer for `err` / `error` keys: serializes raw errors, and passes through values
+ * that already went through {@link serializeError} (callers are asked to call it explicitly).
+ */
+function errSerializer(value: unknown): SerializedError {
+  if (
+    !(value instanceof Error) &&
+    typeof value === 'object' &&
+    value !== null &&
+    typeof (value as SerializedError).name === 'string' &&
+    typeof (value as SerializedError).message === 'string'
+  ) {
+    return value as SerializedError;
+  }
+  return serializeError(value);
+}
+
+/**
  * Creates a Pino logger with the app's redaction and error serializer.
  * @param options - level and whether to pretty-print (pino-pretty)
  * @param destination - optional stream; tests pass one to capture output
@@ -75,7 +92,7 @@ export function createLogger(
   const loggerOptions: LoggerOptions = {
     level: options.level,
     redact: { paths: [...REDACT_PATHS], censor: '[Redacted]' },
-    serializers: { err: serializeError, error: serializeError },
+    serializers: { err: errSerializer, error: errSerializer },
   };
   if (options.pretty && !destination) {
     loggerOptions.transport = {
