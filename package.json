@@ -14,6 +14,7 @@
   },
   "scripts": {
     "dev": "concurrently --names server,worker,mockstores,mobile --prefix-colors blue,magenta,yellow,green \"npm:dev:server\" \"npm:dev:worker\" \"npm:dev:mockstores\" \"npm:dev:mobile\"",
+    "dev:backend": "concurrently --names server,worker,mockstores --prefix-colors blue,magenta,yellow \"npm:dev:server\" \"npm:dev:worker\" \"npm:dev:mockstores\"",
     "dev:server": "npm run dev -w server",
     "dev:worker": "npm run dev:worker -w server",
     "dev:mockstores": "npm run dev -w mockstores",
@@ -38,7 +39,9 @@
     "pretest": "npm run build:shared",
     "pretypecheck": "npm run build:shared",
     "preseed": "npm run build:shared",
-    "presmoke": "npm run build:shared"
+    "presmoke": "npm run build:shared",
+    "predev:backend": "npm run build:shared",
+    "predev:mobile": "npm run build:shared"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",

@@ -12,8 +12,8 @@ Phase-by-phase plan for building ALLinONEcart. Details for every item are in `do
 
 | Phase | Name | Status |
 |---|---|---|
-| 0 | Project setup | ⬜ Not started |
-| 1 | Authentication and accounts | ⬜ Not started |
+| 0 | Project setup | ✅ Done |
+| 1 | Authentication and accounts | 🟡 In progress |
 | 2 | Stores, categories and product extraction | ⬜ Not started |
 | 3 | Cart | ⬜ Not started |
 | 4 | Goals and motivation | ⬜ Not started |
@@ -34,27 +34,47 @@ Status key: ⬜ Not started · 🟡 In progress · ✅ Done
 **Goal:** a clean monorepo with local services, the shared backend building blocks and an Expo app that shows the API status.
 **Spec:** §3, §7.1–7.2, §15.3–15.4, §16, §18 (local)
 
-- [ ] npm workspaces monorepo: `server/`, `mobile/`, `shared/` (+ `mockstores/` placeholder)
-- [ ] TypeScript strict everywhere; ESLint (flat config) + Prettier + `.editorconfig` + `.gitignore`
-- [ ] `docker-compose.yml`: MongoDB 8 single-node replica set, Redis 7, MinIO, mockstores placeholder
-- [ ] Env config validated with Zod; `server/.env.example`, `mobile/.env.example`
-- [ ] Pino logger with redaction + request ids; `serializeError()`
-- [ ] `ApiError`, `sendSuccess`, `asyncHandler`, pagination helpers, `ERROR_CODES` + `ERROR_HTTP_STATUS`
-- [ ] `validate()` middleware (Zod)
-- [ ] Central error handler + 404 handler (standard error format)
-- [ ] Helmet, CORS allow-list, compression, rate limiter
-- [ ] MongoDB + Redis connections, graceful shutdown; empty worker entry point (`worker.ts`)
-- [ ] `GET /api/v1/health` (db + redis status)
-- [ ] `shared/` package with the first enums (cart statuses, goal statuses, goal horizons, priority) and `STATE_MACHINES.cartItem` / `.goal`
-- [ ] Mobile: Expo + Expo Router + NativeWind + RTK Query; dev health screen showing API/DB/Redis status
-- [ ] Tests: health, 404, validation, error handler, malformed JSON, request id, logging (no bodies); one mobile component test
-- [ ] `npm run smoke` (health check) and `npm run seed` skeleton (idempotent, empty)
-- [ ] GitHub Actions CI: lint, typecheck, tests
-- [ ] README + first Git commit
+- [x] npm workspaces monorepo: `server/`, `mobile/`, `shared/` (+ `mockstores/` placeholder)
+- [x] TypeScript strict everywhere; ESLint (flat config) + Prettier + `.editorconfig` + `.gitignore`
+- [x] `docker-compose.yml`: MongoDB 8 single-node replica set, Redis 7, MinIO (mockstores runs via `npm run dev` instead – D7)
+- [x] Env config validated with Zod; `server/.env.example`, `mobile/.env.example`
+- [x] Pino logger with redaction + request ids; `serializeError()`
+- [x] `ApiError`, `sendSuccess`, `asyncHandler`, pagination helpers, `ERROR_CODES` + `ERROR_HTTP_STATUS`
+- [x] `validate()` middleware (Zod)
+- [x] Central error handler + 404 handler (standard error format)
+- [x] Helmet, CORS allow-list, compression, rate limiter
+- [x] MongoDB + Redis connections, graceful shutdown; empty worker entry point (`worker.ts`)
+- [x] `GET /api/v1/health` (db + redis status)
+- [x] `shared/` package with the first enums (cart statuses, goal statuses, goal horizons, priority) and `STATE_MACHINES.cartItem` / `.goal`
+- [x] Mobile: Expo + Expo Router + NativeWind + RTK Query; dev health screen showing API/DB/Redis status (on the temporary home – D8)
+- [x] Tests: health, 404, validation, error handler, malformed JSON, request id, logging (no bodies); one mobile component test
+- [x] `npm run smoke` (health check) and `npm run seed` skeleton (idempotent, empty)
+- [x] GitHub Actions CI: lint, typecheck, tests
+- [x] README + first Git commit
 
 **Done when:** `docker compose up` + `npm run dev` start everything; the Expo app on your phone shows "API: ok · DB: connected · Redis: connected"; `npm test`, `npm run lint`, `npm run typecheck` and `npm run smoke` pass.
 
+**Verification (2026-10-25):** `npm run lint`, `format:check`, `typecheck`, `npm test` (shared 32 · server 60 · mobile 23), `npm run seed` (twice and `-- --reset`), `npm run smoke` (with an API running and without) and a server start with `MONGO_URI` unset (exits 1 naming the variable) all pass. `npm run services:up` + `npm run dev` start everything; the API and Metro answer on the LAN IP and Metro bundles the app for iOS and Android.
+- [ ] Confirm on a physical phone (Expo Go) that the app shows "API: ok · DB: connected · Redis: connected" – not checked from the build machine (no simulator installed)
+- [ ] First CI run green on GitHub (no remote pushed yet)
+
 **Notes / decisions:**
+- Versions: Expo SDK 58 (React Native 0.88, React 19.3), TypeScript 6.0 (typescript-eslint supports < 6.1), ESLint 9 (eslint-plugin-react / -import don't support 10), NativeWind 4.2 + Tailwind 3.4 (v5 is an RC), Zod 4, Express 4.22, Mongoose 8, Vitest 5, React Native Testing Library 14.
+- ioredis pinned to v5: ioredis-mock only supports 5 (BullMQ 6 accepts ≥ 5). ioredis-mock can't run BullMQ's Lua scripts – job tests call `runX()` directly (§15.1).
+- TypeScript 6: `types` defaults to `[]` (list them explicitly, e.g. `"types": ["jest"]` in mobile); side-effect imports are checked (`mobile/css.d.ts` declares `*.css`).
+- RNTL 14: `render` and `fireEvent` are async – always `await` them.
+- Docker: MongoDB is on host port **27018** (a Homebrew MongoDB holds 27017); `MONGO_URI` in `server/.env.example` uses it. Host ports and MinIO credentials can be overridden in a root `.env`.
+- MinIO images come from `cgr.dev/chainguard/minio` and `minio-client` (`minio/minio` is no longer on Docker Hub; only `:latest` is free).
+- `minio-init` is in the compose `setup` profile because `docker compose up --wait` fails on exited one-shot containers; `npm run services:up` runs it after the services are healthy. A plain `docker compose up` does not create the bucket.
+- `PORT` defaults to 5001 (not 5000) so an unset PORT never hits AirPlay.
+- Logging: `*.code` is not redacted (it would hide error codes); `otp` / `otpCode` are, and bodies are never logged. `serializeError()` removes values that Mongo/Mongoose put into duplicate-key, cast and validation messages.
+- Redis down at startup is not fatal (the API starts, `/health` shows `redis: disconnected`, ioredis reconnects); MongoDB down at startup is fatal.
+- The global rate limiter uses the in-memory store for now; switch to a Redis store before running more than one API instance.
+- `npm test` runs shared → server → mobile. `npm run dev` runs Expo without a terminal, so it prints no QR code: use `exp://<LAN-IP>:8081` or `npm run dev:backend` + `npm run dev:mobile` in two terminals.
+- `shared/` builds incrementally (`dist/.tsbuildinfo`) so rebuilding it (pre-hooks of test/typecheck/seed/smoke) doesn't restart the dev API under `tsx watch`.
+- Spec divergences recorded in §20: D7 (mockstores not in Docker Compose), D8 (Phase 0 health card on the temporary home), D9 (mobile-only error codes).
+- npm 11 install-script approvals (`allowScripts`): esbuild, fsevents, unrs-resolver. `msgpackr-extract` (optional speed-up) and `mongodb-memory-server` (binary downloads on first use) are left unapproved.
+- `npm audit` reports 5 high issues inside `@expo/cli` (node-forge, an old zod) – dev tooling only, not in the app bundle. Don't run `npm audit fix --force` (it downgrades Expo to SDK 44).
 
 ---
 

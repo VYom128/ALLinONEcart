@@ -26,6 +26,15 @@ async function answersHealth(baseUrl: string): Promise<boolean> {
   }
 }
 
+/** A dev API restarting under `tsx watch` is briefly unreachable, so probe a few times. */
+async function apiIsRunning(baseUrl: string, attempts = 6): Promise<boolean> {
+  for (let i = 0; i < attempts; i += 1) {
+    if (await answersHealth(baseUrl)) return true;
+    if (i < attempts - 1) await new Promise((resolve) => setTimeout(resolve, 500));
+  }
+  return false;
+}
+
 async function startTemporaryApi(): Promise<Target> {
   // Keep the ✓/✗ output readable: the temporary API only logs real errors.
   logger.level = 'error';
@@ -54,7 +63,7 @@ async function startTemporaryApi(): Promise<Target> {
 async function main(): Promise<number> {
   const existing = `http://127.0.0.1:${config.port}${API_PREFIX}`;
   let target: Target;
-  if (await answersHealth(existing)) {
+  if (await apiIsRunning(existing)) {
     console.log(`Using the API already running on port ${config.port} (it is left running).`);
     target = { baseUrl: existing, stop: async () => {} };
   } else {
