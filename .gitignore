@@ -1,0 +1,37 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+*.tsbuildinfo
+coverage/
+
+# Env (keep the examples)
+.env
+.env.*
+!.env.example
+
+# Logs
+logs/
+*.log
+
+# OS
+.DS_Store
+
+# Expo / React Native
+.expo/
+web-build/
+mobile/android/
+mobile/ios/
+mobile/expo-env.d.ts
+.metro-health-check*
+*.keystore
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.pem
+
+# Local services data
+minio-data/

@@ -1,0 +1,12 @@
+node_modules
+dist
+coverage
+.expo
+mobile/android
+mobile/ios
+mobile/expo-env.d.ts
+package-lock.json
+minio-data
+# Hand-written docs are not reformatted
+CLAUDE.md
+docs

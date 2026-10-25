@@ -1,0 +1,47 @@
+{
+  "name": "allinonecart",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "shared",
+    "server",
+    "mobile",
+    "mockstores"
+  ],
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "concurrently --names server,worker,mockstores,mobile --prefix-colors blue,magenta,yellow,green \"npm:dev:server\" \"npm:dev:worker\" \"npm:dev:mockstores\" \"npm:dev:mobile\"",
+    "dev:server": "npm run dev -w server",
+    "dev:worker": "npm run dev:worker -w server",
+    "dev:mockstores": "npm run dev -w mockstores",
+    "dev:mobile": "npm run start -w mobile",
+    "build:shared": "npm run build -w shared",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "npm run typecheck --workspaces",
+    "test": "npm run test:server && npm run test:mobile",
+    "test:server": "npm test -w server",
+    "test:mobile": "npm test -w mobile",
+    "predev": "npm run build:shared",
+    "pretest": "npm run build:shared",
+    "pretypecheck": "npm run build:shared"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "@types/node": "^24.19.2",
+    "concurrently": "^10.0.6",
+    "eslint": "^9.39.5",
+    "eslint-config-expo": "~58.0.4",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.13.0",
+    "prettier": "^3.9.10",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.72.0"
+  }
+}
