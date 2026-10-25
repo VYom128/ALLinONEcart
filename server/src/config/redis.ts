@@ -1,9 +1,7 @@
 import { Redis } from 'ioredis';
+import type { RedisStatus } from './constants.js';
 import { config } from './env.js';
 import { logger, serializeError } from '../utils/logger.js';
-
-/** Connection state reported by /health. */
-export type RedisStatus = 'connected' | 'connecting' | 'disconnected';
 
 // Tests never need a real Redis: ioredis-mock is a dev dependency, loaded only when NODE_ENV=test.
 const RedisMock = config.isTest ? (await import('ioredis-mock')).default : undefined;

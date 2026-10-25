@@ -1,11 +1,9 @@
 import mongoose from 'mongoose';
+import type { DbStatus } from './constants.js';
 import { config } from './env.js';
 import { logger, serializeError } from '../utils/logger.js';
 
 mongoose.set('strictQuery', true);
-
-/** Connection state reported by /health. */
-export type DbStatus = 'connected' | 'disconnected' | 'connecting' | 'disconnecting';
 
 let listenersAttached = false;
 

@@ -1,5 +1,5 @@
-// Shared enums and state machines (spec §5) are re-exported here once `shared/` defines them
-// in Phase 0, step 6: `export * from '@allinone/shared';`
+// Shared enums, state machines and API types (spec §5). Server code imports them from here.
+export * from '@allinone/shared';
 
 /**
  * Error codes from spec §16. Always use these, never string literals.

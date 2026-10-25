@@ -1,0 +1,45 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Design tokens (spec §13.3). The only place colours are defined: components use the token
+ * classes from tailwind.config.js (bg-canvas, text-ink, border-line, primary-*), never hex.
+ * Values are "R G B" so Tailwind opacity modifiers work (bg-success/15).
+ */
+:root {
+  --color-canvas: 248 250 252;
+  --color-surface: 255 255 255;
+  --color-ink: 15 23 42;
+  --color-muted: 71 85 105;
+  --color-line: 226 232 240;
+  --color-success: 21 128 61;
+  --color-warning: 180 83 9;
+  --color-danger: 185 28 28;
+  --color-on-primary: 255 255 255;
+
+  --color-primary-50: 238 242 255;
+  --color-primary-100: 224 231 255;
+  --color-primary-200: 199 210 254;
+  --color-primary-300: 165 180 252;
+  --color-primary-400: 129 140 248;
+  --color-primary-500: 99 102 241;
+  --color-primary-600: 79 70 229;
+  --color-primary-700: 67 56 202;
+  --color-primary-800: 55 48 163;
+  --color-primary-900: 49 46 129;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-canvas: 2 6 23;
+    --color-surface: 15 23 42;
+    --color-ink: 241 245 249;
+    --color-muted: 148 163 184;
+    --color-line: 51 65 85;
+    --color-success: 74 222 128;
+    --color-warning: 251 191 36;
+    --color-danger: 248 113 113;
+    --color-on-primary: 255 255 255;
+  }
+}

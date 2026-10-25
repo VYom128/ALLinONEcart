@@ -70,6 +70,16 @@ export default defineConfig([
   // Mobile: Expo preset + React Hooks
   ...expoConfig.map((block) => scopeTo(block, 'mobile')),
   scopeTo(reactHooks.configs.flat['recommended-latest'], 'mobile'),
+  {
+    // Resolve the `@/` alias from mobile/tsconfig.json (Expo's preset only knows Node paths).
+    files: [`mobile/${CODE}`],
+    settings: {
+      'import/resolver': {
+        typescript: { project: 'mobile/tsconfig.json' },
+        node: true,
+      },
+    },
+  },
 
   // Test files
   {
