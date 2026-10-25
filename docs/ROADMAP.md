@@ -56,7 +56,7 @@ Status key: ⬜ Not started · 🟡 In progress · ✅ Done
 
 **Verification (2026-10-25):** `npm run lint`, `format:check`, `typecheck`, `npm test` (shared 32 · server 60 · mobile 23), `npm run seed` (twice and `-- --reset`), `npm run smoke` (with an API running and without) and a server start with `MONGO_URI` unset (exits 1 naming the variable) all pass. `npm run services:up` + `npm run dev` start everything; the API and Metro answer on the LAN IP and Metro bundles the app for iOS and Android.
 - [ ] Confirm on a physical phone (Expo Go) that the app shows "API: ok · DB: connected · Redis: connected" – not checked from the build machine (no simulator installed)
-- [ ] First CI run green on GitHub (no remote pushed yet)
+- [x] First CI run green on GitHub (2026-10-25: `check` and `smoke` passed, run 40182084868)
 
 **Notes / decisions:**
 - Versions: Expo SDK 58 (React Native 0.88, React 19.3), TypeScript 6.0 (typescript-eslint supports < 6.1), ESLint 9 (eslint-plugin-react / -import don't support 10), NativeWind 4.2 + Tailwind 3.4 (v5 is an RC), Zod 4, Express 4.22, Mongoose 8, Vitest 5, React Native Testing Library 14.
