@@ -1,0 +1,85 @@
+# Local services for development (spec §18). Start with `npm run services:up`.
+# Host ports and MinIO credentials can be overridden in a root .env (see .env.example).
+#
+# Connection strings for server/.env:
+#   MONGO_URI=mongodb://localhost:27018/allinone?replicaSet=rs0&directConnection=true
+#   REDIS_URL=redis://localhost:6379
+# MinIO: API http://localhost:9000, console http://localhost:9001, bucket allinone-dev.
+name: allinonecart
+
+services:
+  mongo:
+    image: mongo:8
+    command: ['--replSet', 'rs0', '--bind_ip_all']
+    ports:
+      # 27018 on the host so a Homebrew MongoDB on 27017 can keep running.
+      - '${MONGO_PORT:-27018}:27017'
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      # Initiates the single-member replica set on first run, then reports healthy only once
+      # rs.status().ok is 1 and this node is a writable primary (needed for transactions).
+      test:
+        - CMD
+        - mongosh
+        - --quiet
+        - --eval
+        - >-
+          try { rs.status() } catch (e) {
+            rs.initiate({ _id: 'rs0', members: [{ _id: 0, host: 'localhost:27017' }] })
+          }
+          quit(rs.status().ok === 1 && db.hello().isWritablePrimary ? 0 : 1)
+      interval: 5s
+      timeout: 10s
+      retries: 20
+      start_period: 10s
+      start_interval: 2s
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - '${REDIS_PORT:-6379}:6379'
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  minio:
+    # The minio/minio images are no longer published on Docker Hub; Chainguard builds the same
+    # MinIO server from source.
+    image: cgr.dev/chainguard/minio:latest
+    command: ['server', '/data', '--console-address', ':9001']
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      MC_CONFIG_DIR: /tmp/.mc
+    ports:
+      - '${MINIO_API_PORT:-9000}:9000'
+      - '${MINIO_CONSOLE_PORT:-9001}:9001'
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: ['CMD', 'mc', 'ready', 'local']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  minio-init:
+    # One-shot: creates the dev bucket, then exits 0. Safe to re-run.
+    # In a profile because `up --wait` treats any exited container as a failure;
+    # `npm run services:up` runs it after the other services are healthy.
+    image: cgr.dev/chainguard/minio-client:latest
+    profiles: ['setup']
+    depends_on:
+      minio:
+        condition: service_healthy
+    environment:
+      MC_HOST_local: http://${MINIO_ROOT_USER:-minioadmin}:${MINIO_ROOT_PASSWORD:-minioadmin}@minio:9000
+      MC_CONFIG_DIR: /tmp/.mc
+    command: ['mb', '--ignore-existing', 'local/allinone-dev']
+    restart: 'no'
+
+volumes:
+  mongo-data:
+  minio-data:
